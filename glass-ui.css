@@ -1,0 +1,671 @@
+/* ============================================================
+   Dark Glass UI — drop-in base stylesheet
+   Monotone dark · liquid glass surfaces · Apple-style restraint
+   Copy into a project, then build components from these primitives.
+   ============================================================ */
+
+/* ---------- tokens ---------- */
+
+@property --hl {
+  /* hover level: 0 rest → 1 hover → 1.6 pressed / active. Every control derives its tint from it. */
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+:root {
+  /* color — monotone only; the single non-gray is danger */
+  --bg: #000;
+  --canvas: #0b0b0c;
+  --surface: #121214;
+  --surface-2: #1a1a1d;
+  --text: #f5f5f7;
+  --text-2: rgba(235, 235, 245, 0.62);
+  --text-3: rgba(235, 235, 245, 0.32);
+  --sep: rgba(255, 255, 255, 0.08);
+  --fill: rgba(255, 255, 255, 0.06);
+  --fill-2: rgba(255, 255, 255, 0.1);
+  --fill-3: rgba(255, 255, 255, 0.16);
+  --danger: #ff5a52;
+
+  /* shape */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* motion */
+  --dur: 260ms;
+  --dur-press: 140ms;
+  --ease-ui: cubic-bezier(0.25, 0.1, 0.25, 1); /* hovers, presses, state changes */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1); /* entrances, panels */
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1); /* pop-in of popovers/dialogs ONLY — never hover */
+
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ---------- type scale ---------- */
+
+.large-title {
+  font-size: clamp(34px, 5vw, 46px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.title {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.headline {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.secondary {
+  color: var(--text-2);
+}
+.caption {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   Liquid glass
+   Needs something behind it to refract (content, or ambient blobs).
+   Direct children need `position: relative; z-index: 1` to sit above ::after.
+   ============================================================ */
+
+.glass {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, calc(0.11 + var(--hl) * 0.05)) 0%,
+    rgba(255, 255, 255, calc(0.04 + var(--hl) * 0.045)) 55%,
+    rgba(255, 255, 255, calc(0.06 + var(--hl) * 0.04)) 100%
+  );
+  -webkit-backdrop-filter: blur(30px) saturate(170%);
+  backdrop-filter: blur(30px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 18px rgba(255, 255, 255, 0.025),
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: --hl var(--dur) var(--ease-ui);
+}
+/* rim light — brighter top-left and bottom-right, like light bending through a lens edge */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.42) 0%,
+    rgba(255, 255, 255, 0.08) 28%,
+    rgba(255, 255, 255, 0.02) 55%,
+    rgba(255, 255, 255, 0.07) 78%,
+    rgba(255, 255, 255, 0.24) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* specular sheen */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 70% at 20% -10%, rgba(255, 255, 255, 0.09), transparent 60%);
+  pointer-events: none;
+}
+.glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* denser glass for popovers, menus, dialogs that sit over busy content */
+.glass-thick {
+  background: linear-gradient(180deg, rgba(46, 46, 50, 0.86), rgba(24, 24, 27, 0.92));
+}
+
+/* ambient backdrop so page-level glass has something to refract */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% -20%, #1b1b1e 0%, #050505 55%, #000 100%);
+}
+.ambient .blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  animation: drift 26s var(--ease) infinite alternate;
+}
+.ambient .blob:nth-child(1) {
+  width: 46vw;
+  height: 46vw;
+  left: -12vw;
+  top: -14vw;
+  background: radial-gradient(circle, #3a3a3f, transparent 68%);
+}
+.ambient .blob:nth-child(2) {
+  width: 38vw;
+  height: 38vw;
+  right: -10vw;
+  top: 18vh;
+  background: radial-gradient(circle, #2b2b2f, transparent 70%);
+  animation-delay: -9s;
+}
+.ambient .blob:nth-child(3) {
+  width: 50vw;
+  height: 30vw;
+  left: 25vw;
+  bottom: -18vw;
+  background: radial-gradient(circle, #232326, transparent 70%);
+  animation-delay: -17s;
+}
+@keyframes drift {
+  to {
+    transform: translate(6vw, 4vh) scale(1.08);
+  }
+}
+
+/* ============================================================
+   Controls
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: var(--r-pill);
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 1px var(--sep);
+}
+.segmented button {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.segmented button.on {
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.field {
+  /* the ONE text input: recessed pill, single hairline ring that brightens on hover/focus — no outline, no second ring.
+     <label class="field">[icon]<input placeholder="…"></label>   (.field-sm for compact) */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  color: var(--text-3);
+  cursor: text;
+  background-color: rgba(255, 255, 255, calc(0.05 + var(--hl) * 0.015));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, calc(0.08 + var(--hl) * 0.07)),
+    inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.field:focus-within {
+  --hl: 2;
+  color: var(--text-2);
+}
+.field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+.field input::placeholder {
+  color: var(--text-3);
+}
+.field svg {
+  flex: none;
+}
+.field-sm {
+  height: 34px;
+  padding: 0 12px;
+}
+.field-sm input {
+  font-size: 13px;
+}
+
+.link-btn {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* floating toolbar / dock — glass pill holding ghost buttons */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 56px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+}
+.toolbar-sep {
+  width: 1px;
+  height: 24px;
+  margin: 0 6px;
+  background: var(--sep);
+}
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px 0 13px;
+  border-radius: var(--r-pill);
+  font-weight: 500;
+}
+
+/* ============================================================
+   Interaction presets — ONE hover/press language for everything.
+   Add new interactive classes to these lists rather than writing bespoke :hover rules.
+   ============================================================ */
+
+:is(.btn, .icon-btn, .pill, .chip, .segmented button, .link-btn, .card, .toolbar-btn, .menu-item, .field) {
+  transition:
+    --hl var(--dur) var(--ease-ui),
+    background-color var(--dur) var(--ease-ui),
+    background-image var(--dur) var(--ease-ui),
+    color var(--dur) var(--ease-ui),
+    opacity var(--dur) var(--ease-ui),
+    box-shadow var(--dur) var(--ease-ui),
+    border-color var(--dur) var(--ease-ui),
+    transform var(--dur-press) var(--ease-ui);
+}
+
+@media (hover: hover) {
+  :is(.btn, .icon-btn, .pill, .chip, .segmented button, .link-btn, .card, .toolbar-btn, .menu-item, .field):hover {
+    --hl: 1;
+  }
+}
+:is(.btn, .icon-btn, .pill, .chip, .segmented button, .toolbar-btn):active {
+  --hl: 1.6;
+  transform: scale(0.97);
+}
+.card:active {
+  transform: scale(0.992); /* large surfaces press less */
+}
+:is(.icon-btn, .toolbar-btn, .btn-ghost).active,
+.is-editing {
+  --hl: 1.6;
+}
+
+/* ghost — transparent at rest, soft fill on hover */
+:is(.btn-ghost, .icon-btn, .toolbar-btn, .menu-item, .segmented button) {
+  background-color: rgba(255, 255, 255, calc(var(--hl) * 0.085));
+}
+.icon-btn.glass,
+.pill.glass {
+  background-color: transparent; /* glass tints itself from --hl */
+}
+
+/* filled — secondary */
+.btn {
+  background-color: rgba(255, 255, 255, calc(0.1 + var(--hl) * 0.06));
+}
+.btn.btn-ghost {
+  background-color: rgba(255, 255, 255, calc(var(--hl) * 0.085));
+  box-shadow: none;
+}
+.chip {
+  background-color: rgba(255, 255, 255, calc(0.06 + var(--hl) * 0.05));
+}
+.segmented button.on {
+  background-color: rgba(255, 255, 255, calc(0.18 + var(--hl) * 0.04));
+}
+
+/* primary — solid white with a clean 3D bevel. Never a glow. */
+:is(.btn-primary, .chip.on) {
+  color: #000;
+  font-weight: 600;
+  background-color: #ececef;
+  background-image: linear-gradient(
+    180deg,
+    hsl(240 6% calc(97% + var(--hl) * 3%)) 0%,
+    hsl(240 4% calc(88% + var(--hl) * 4%)) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.12),
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.35);
+}
+:is(.btn-primary, .chip.on):active {
+  background-image: linear-gradient(180deg, hsl(240 4% 86%) 0%, hsl(240 5% 93%) 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 0.5px rgba(0, 0, 0, 0.14),
+    0 1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* destructive */
+.btn-danger {
+  color: var(--danger);
+  font-weight: 600;
+  background-color: rgba(255, 90, 82, calc(0.16 + var(--hl) * 0.08));
+}
+:is(.btn-ghost, .icon-btn, .toolbar-btn, .menu-item).danger:hover {
+  color: var(--danger);
+  background-color: rgba(255, 90, 82, calc(var(--hl) * 0.12));
+}
+
+.link-btn {
+  opacity: calc(0.72 + var(--hl) * 0.28);
+}
+
+/* keyboard focus */
+:is(button, a):focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================================
+   Surfaces
+   ============================================================ */
+
+/* card — no lift on hover; ring and surface brighten together */
+.card {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, calc(0.035 + var(--hl) * 0.022));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, calc(0.07 + var(--hl) * 0.06)),
+    0 20px 50px rgba(0, 0, 0, calc(0.35 + var(--hl) * 0.1));
+}
+/* actions that only appear on card hover fade — never scale/pop */
+.card .reveal {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-ui);
+}
+.card:hover .reveal,
+.card .reveal:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .card .reveal {
+    opacity: 1;
+  }
+}
+
+/* media inside cards/canvases: generous rounding, deep soft shadow */
+.media {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: fade 0.25s var(--ease);
+}
+.dialog {
+  width: min(400px, 100%);
+  padding: 24px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(48, 48, 52, 0.75), rgba(28, 28, 31, 0.8));
+  animation: pop 0.4s var(--spring);
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.menu {
+  position: fixed;
+  z-index: 120;
+  min-width: 200px;
+  padding: 6px;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(50, 50, 54, 0.78), rgba(30, 30, 33, 0.85));
+  animation: pop 0.3s var(--spring);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--r-sm);
+  text-align: left;
+}
+
+.toast {
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  font-weight: 500;
+  animation: pop 0.4s var(--spring);
+}
+
+/* ============================================================
+   In-place editing — the text itself becomes the input. No inner box.
+   <span class="inline-edit" data-value={value}><input value={value} /></span>
+   ============================================================ */
+
+.inline-edit {
+  display: inline-grid;
+  min-width: 0;
+}
+.inline-edit.block {
+  display: grid;
+}
+.inline-edit::after {
+  content: attr(data-value) ' ';
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: pre;
+  overflow: hidden;
+}
+.inline-edit input {
+  grid-area: 1 / 1;
+  width: 100%;
+  min-width: 2ch;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  caret-color: #fff;
+}
+
+/* edit affordance — icon slides out of its container on hover; becomes a white ✓ while editing */
+.edit-affordance {
+  display: grid;
+  place-items: center;
+  width: 0;
+  height: 28px;
+  margin-left: -12px;
+  margin-right: 6px;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-6px);
+  color: var(--text-2);
+  transition:
+    width var(--dur) var(--ease-ui),
+    margin var(--dur) var(--ease-ui),
+    opacity var(--dur) var(--ease-ui),
+    transform var(--dur) var(--ease-ui),
+    background-color var(--dur) var(--ease-ui),
+    color var(--dur) var(--ease-ui);
+}
+:hover > .edit-affordance,
+.is-editing > .edit-affordance,
+.edit-affordance:focus-visible {
+  width: 28px;
+  margin-left: -10px;
+  opacity: 1;
+  transform: none;
+}
+.edit-affordance:hover {
+  color: var(--text);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.is-editing > .edit-affordance {
+  color: #000;
+  background-color: #f5f5f7;
+}
+
+/* ============================================================
+   Motion
+   ============================================================ */
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+}
+.enter {
+  animation: rise 0.6s var(--ease) backwards; /* `backwards`, not `both`, so :active transforms still apply */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
